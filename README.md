@@ -43,7 +43,7 @@ python kinetics_ffmpeg.py
 python kinetics_ffcv.py
 ```
 
-## Results
+## Speed Results
 
 | Library                | Train Size (GB) | Val Size (GB) | Num_train | Num_val | Frames | Skip | videos/Second |
 |------------------------|-----------------|---------------|-----------|---------|--------|------|---------------|
@@ -53,3 +53,23 @@ python kinetics_ffcv.py
 | FFmpeg                 | 348             | 29            | 241255    | 19881   | 16     | 4    | 26.91         |
 | FFCV                   | 946             | 44            | 241255    | 19881   | 16     | 4    | 564.03        |
 
+## Model evaluations using FFCV:
+The models on the HUB that I found are:
+- [VideoMAE](https://arxiv.org/abs/2203.12602) on the following configurations: [Small](https://huggingface.co/MCG-NJU/videomae-small-finetuned-kinetics), [Base](https://huggingface.co/MCG-NJU/videomae-base-finetuned-kinetics), [Large](https://huggingface.co/MCG-NJU/videomae-large-finetuned-kinetics), [Huge](https://huggingface.co/MCG-NJU/videomae-huge-finetuned-kinetics). Trained using 16 frames and skipping 4.
+- My own [ViC-MAE](https://arxiv.org/abs/2303.12001) on the following configurations: Base, Large. See the ViC-MAE [repository](https://github.com/jeffhernandez1995/ViC-MAE) for more details. Trained using 16 frames and skipping 4.
+- [TimeSformer](https://arxiv.org/pdf/2102.05095.pdf) on the following configurations: [Base](https://huggingface.co/facebook/timesformer-base-finetuned-k400), [HR](https://huggingface.co/facebook/timesformer-hr-finetuned-k400). Trained using 8 frames and skipping 4 and 16 frames and skipping 4, respectively.
+- [ViViT](https://arxiv.org/pdf/2103.15691.pdf) on the following configurations: [Base](https://huggingface.co/google/vivit-b-16x2-kinetics400). Trained using 32 frames and skipping 2.
+
+
+The results we obtain are:
+| Name         | Arch    | Fxs  | SxT views | Accuracy | SxT views | Accuracy |
+|--------------|---------|------|-----------|----------|-----------|----------|
+| VideoMAE     | ViT/S-16| 16x4 | 3x5       | 79       | 1x5       | 54.7     |
+| VideoMAE     | ViT/B-16| 16x4 | 3x5       | 81.5     | 1x5       | 77.7     |
+| VideoMAE     | ViT/L-14| 16x4 | 3x5       | 85.2     | 1x5       | 81.9     |
+| VideoMAE     | ViT/H-14| 16x4 | 3x5       | 86.6     | 1x5       | 83       |
+| ViCMAE       | ViT/B-16| 16x4 | 3x7       | 80.8     | 1x5       | 77.3     |
+| ViCMAE       | ViT/L-14| 16x4 | 3x7       | 86.8     | 1x5       | 83.1     |
+| TimesFormer  | Base    | 8x4  | 3x1       | 79.1     | 1x5       | 73.9     |
+| TimesFormer  | HR      | 16x4 | 3x1       | 81.8     | 1x5       | 64.3     |
+| ViViT        | ViViT/B | 32x2 | 1x4       | 79.9     | 1x5       | 66.5     |

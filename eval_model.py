@@ -27,62 +27,12 @@ import math
 import numpy as np
 import pandas as pd
 
-
 from argparse import ArgumentParser
 from fastargs import Section, Param
 from fastargs.validation import And, OneOf
 from fastargs.decorators import param, section
 from fastargs import get_current_config
-
-# from timm.utils import accuracy
-
 from sklearn.metrics import accuracy_score, top_k_accuracy_score
-
-# from pathlib import Path
-# from typing import Any, Callable, Dict, Optional, Tuple
-
-
-# Ussage
-
-# class BatchRandomHorizontalFlip(object):
-#     def __init__(self, p=0.5):
-#         self.p = p
-
-#     def __call__(self, vid):
-#         # vid is BxTxCxHxW
-#         if torch.rand(1) < self.p:
-#             # reshae to (B*T)xCxHxW
-#             vid_shape = vid.shape
-#             new_shape = (vid_shape[0] * vid_shape[1],) + vid_shape[2:]
-#             vid = vid.view(*new_shape)
-#             vid = F.hflip(vid)
-#             vid = vid.view(*vid_shape)
-#         return vid
-
-
-# class BatchToTensor(object):
-#     def __call__(self, vid):
-#         # vid is BxTxCxHxW
-#         return torch.from_numpy(vid)
-
-# class BatchNormalize(object):
-#     def __init__(self, mean, std):
-#         self.mean = mean
-#         self.std = std
-
-#     def __call__(self, vid):
-#         # vid is BxTxCxHxW
-#         vid = vid.float()
-#         vid = vid / 255.0
-#         vid = F.normalize(vid, self.mean, self.std)
-#         return vid
-
-
-# IMG_MEAN = (0.4914, 0.4822, 0.4465) 
-# IMG_STD  = (0.2023, 0.1994, 0.2010)
-
-IMG_MEAN = np.array([0.485, 0.456, 0.406]) * 255
-IMG_STD = np.array([0.229, 0.224, 0.225]) * 255
 
 
 def split_list(lst, n):
@@ -139,6 +89,18 @@ def main(
     # train_decoder = CenterCropRGBVideoDecoder(output_size=output_size, ratio=0.875)
     # scale is 1.0, ratio is 1.0 this is just a resize instead of a random crop
     train_decoder = RandomResizedCropRGBVideoDecoder(output_size=output_size, scale=(1.0, 1.0), ratio=(1.0, 1.0))
+
+    if 'videomae' in model:
+        IMG_MEAN = np.array([0.485, 0.456, 0.406]) * 255
+        IMG_STD = np.array([0.229, 0.224, 0.225]) * 255
+    elif 'timesformer' in model:
+        IMG_MEAN = np.array([0.45, 0.45, 0.45]) * 255
+        IMG_STD = np.array([0.225, 0.225, 0.225]) * 255
+    elif 'vivit' in model:
+        IMG_MEAN = np.array([0.5, 0.5, 0.5]) * 255
+        IMG_STD = np.array([0.5, 0.5, 0.5]) * 255
+    else:
+        raise ValueError(f'Unknown model: {model}')
 
     video_pipeline: List[Operation] = [
         train_decoder,
@@ -243,7 +205,7 @@ def main(
                 # take 8 frames from the 16
                 videos = videos[:, :2, ...]
             if 'vivit' in model_name:
-                # repeat the frames to get 32 from 16
+                # repeat the frames to get 32x2 from 16x4
                 indices = torch.linspace(0, 15, 32).long()
                 videos = videos[:, indices, ...]
             # ffcv already does this
